@@ -2,10 +2,9 @@ const express = require("express");
 const app = express();
 const bodyParser = require("body-parser");
 const fs = require('fs');
-const path = require('path')
 const port = process.env.PORT || 8000;
 // Use the array below to store the users. Add/remove/update items in it based off
-// let storage = require('./storage.json');
+let storage = [];
 app.use(bodyParser.json());
 
 //Get route for getting all users
@@ -39,12 +38,13 @@ app.get('/users/:name', (req,res) => {
 
 //Create route for creating new users
 app.post('/users', (req, res) => {
+  console.log("I am in post");
   let user = {
     name: req.body.name,
     email: req.body.email,
     state: req.body.state
   }
-  fs.readFile('./storage.json', 'utf8', function(err,data){
+  fs.readFile('./storage.json', 'utf8', function(err,data) {
     if(err) throw err;
     let parsedData = JSON.parse(data);
     console.log(parsedData);
@@ -52,38 +52,39 @@ app.post('/users', (req, res) => {
     fs.writeFile('./storage.json', JSON.stringify(parsedData), (err) => {
       if (err) throw err;
       console.log('The file has been saved!');
+      res.sendStatus(200);
     });
-    res.sendStatus(400);
+    res.send('New User Added');
   })
 })
 
 
 //Update route for updating a user by name
-app.put('users/:name', (req,res) => {
+app.put('/users/:name', (req,res) => {
   console.log("I am in patchUser/Update");
   fs.readFile('./storage.json', 'utf8', function(err, data) {
     if(err) throw err;
-    let userData = JSON.parse(data);
-    let name = req.params.name;
-    for(let i = 0; userData.length; i++) {
-      if(name === userData[i].name){
-        userData[i] = req.body;
+    let parsedData = JSON.parse(data);
+    for (let i = 0; i < parsedData.length; i++) {
+      if (req.params.name === parsedData[i].name){
+        parsedData[i] = req.body;
       }
     }
-    fs.writeFile('./storage.json', JSON.stringify(userData), (err) => {
+    fs.writeFile('./storage.json', JSON.stringify(parsedData), (err) => {
       if(err) throw err;
       console.log('User was updated.');
       res.send('Updated User successfully');
+
     });
-    res.sendStatus(400);
+    // res.sendStatus(400);
   })
 })
 
 
 //Delete route for deleting a user by name
-app.delete('users/:name', (req,res) => {
-  console.log("I am in deleteApp");
-  fs.readFile('./storage.json', 'utf8', function(err, data) {
+app.delete('/users/:name', (req,res) => {
+ console.log("I am in deleteApp");
+ fs.readFile('./storage.json', 'utf8', function(err, data) {
     if (err) throw err;
     let parsedData = JSON.parse(data);
     let matchedUser = parsedData.filter((item) => {
@@ -94,7 +95,7 @@ app.delete('users/:name', (req,res) => {
       console.log("success!");
       res.sendStatus('User was deleted successfully');
     });
-    res.sendStatus(400);
+    // res.sendStatus(400);
   })
 })
 
